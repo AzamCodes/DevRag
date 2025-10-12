@@ -1,0 +1,119 @@
+@import "tailwindcss";
+@import "katex/dist/katex.min.css";
+
+/* @import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+} */
+/* 
+@tailwind base;
+@tailwind components;
+@tailwind utilities; */
+
+/* --------------------------- Basic --------------------------- */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #090909;
+}
+
+/* ------------------------ Scrollbar ------------------------- */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+/* ----------------------- Markdown Typography ---------------- */
+.prose {
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+
+.prose p {
+  margin: 0.6em 0;
+}
+
+/* Ordered lists */
+.prose ol {
+  margin-left: 1.2em;
+  padding-left: 1.2em; /* ensure numbers are visible */
+  list-style-type: decimal;
+  list-style-position: inside; /* numbers inside the block */
+}
+
+/* Unordered lists */
+.prose ul {
+  list-style: disc;
+  margin-left: 1.25em;
+  padding-left: 1.25em;
+}
+
+/* List items spacing */
+.prose li {
+  margin: 0.25em 0;
+}
+
+/* Bold text */
+.prose strong {
+  color: #1e293b;
+}
+
+/* Code (inline) */
+.prose code {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+
+/* Code blocks */
+pre, code {
+  background: #1e1e1e;
+  color: #e0e0e0;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: block;
+  white-space: pre;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+
+/* --------------------------- Dark Mode ----------------------- */
+.dark .prose strong {
+  color: #f8fafc;
+}
+
+.dark .prose code {
+  background-color: #1e293b;
+}
