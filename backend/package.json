@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon index.js",
-    "start": "node index.js"
+    "start": "node index.js",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@datastax/astra-db-ts": "^2.1.1",
@@ -25,6 +26,7 @@
     "puppeteer": "^24.23.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "eslint": "^8.43.0"
   }
 }
