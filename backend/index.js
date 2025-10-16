@@ -19,7 +19,7 @@ if (fs.existsSync(envPath)) {
   console.log("⚙️ Using environment variables from Render");
 }
 
-// Log environment variables
+// Log environment variables to confirm
 console.log("ASTRA_DB_ENDPOINT:", process.env.ASTRA_DB_ENDPOINT);
 console.log("ASTRA_DB_COLLECTION:", process.env.ASTRA_DB_COLLECTION);
 console.log("NEXT_PUBLIC_API:", process.env.NEXT_PUBLIC_API);
@@ -28,12 +28,11 @@ console.log("HF_API_KEY:", process.env.HF_API_KEY);
 
 const app = express();
 
-// ✅ FIX CORS HERE
+// ✅ CORS configuration
 const allowedOrigins = [
-  "http://localhost:3000", // for local dev
-  "https://devrag.vercel.app", // your deployed frontend
+  "http://localhost:3000", // local dev
+  "https://devrag.vercel.app", // deployed frontend
 ];
-
 
 app.use(
   cors({
@@ -49,9 +48,10 @@ app.use(
 );
 
 app.use(express.json());
+
+// Routes
 app.use("/api/chat", chatRouter);
 
 // Start server
-app.listen(process.env.PORT || 5000, () =>
-  console.log("🚀 Server running on port", process.env.PORT || 5000)
-);
+const port = process.env.PORT || 5000;
+app.listen(port, () => console.log(`🚀 Server running on port ${port}`));
