@@ -905,6 +905,746 @@
 //     </div>
 //   );
 // }
+// "use client";
+
+// import React, { useState } from "react";
+// import { format } from "date-fns";
+// import ReactMarkdown from "react-markdown";
+// import remarkGfm from "remark-gfm";
+// import rehypeHighlight from "rehype-highlight";
+// import { Copy, Check, Edit, ExternalLink } from "lucide-react";
+
+// // Define the Message type
+// type Message = {
+//   id: string;
+//   role: "user" | "assistant";
+//   text: string;
+//   ts: number;
+//   sources?: { title?: string; url?: string }[];
+//   onEdit?: (text: string) => void;
+// };
+
+// // Normalize Markdown links and ensure string
+// function normalizeMarkdownLinks(text: any): string {
+//   if (!text) return "";
+//   return String(text).replace(/\[([^\]]+)\]\(\s*\n?\s*(https?:\/\/[^\s)]+)\s*\)/g, "[$1]($2)");
+// }
+
+// // Auto-wrap tree-like text in code block
+// function formatTreeText(text: string): string {
+//   if (!text) return "";
+//   const hasTreeChars = /├──|└──/.test(text);
+//   if (hasTreeChars) return "```\n" + text + "\n```";
+//   return text;
+// }
+
+// // Auto-format AI responses: fix bullets, numbered lists, spacing, and trees
+// function formatAiResponsePerfect(text: string): string {
+//   if (!text) return "";
+
+//   let formatted = String(text);
+
+//   // Normalize line breaks
+//   formatted = formatted.replace(/\r\n|\r/g, "\n");
+
+//   // Remove extra spaces at start/end of each line
+//   formatted = formatted
+//     .split("\n")
+//     .map((line) => line.trimEnd())
+//     .join("\n");
+
+//   // Ensure numbered lists start on a new line
+//   formatted = formatted.replace(/(\d+)\.\s+/g, "\n$1. ");
+
+//   // Ensure bullets start on a new line
+//   formatted = formatted.replace(/\s*-\s+/g, "\n- ");
+
+//   // Fix folder tree code blocks
+//   if (/├──|└──/.test(formatted)) {
+//     formatted = "```\n" + formatted + "\n```";
+//   }
+
+//   // Remove multiple empty lines
+//   formatted = formatted.replace(/\n{2,}/g, "\n");
+
+//   return formatted.trim();
+// }
+
+// // Extract URLs safely
+// function extractUrls(text: any): { title: string; url: string }[] {
+//   if (!text) return [];
+//   const str = String(text);
+//   const urlRegex = /(https?:\/\/[^\s]+)/g;
+//   const matches = str.match(urlRegex);
+//   if (!matches) return [];
+//   return matches.map((url) => ({ title: url, url }));
+// }
+
+// // Component to render source list
+// function SourceList({ sources }: { sources?: Message["sources"] }) {
+//   if (!sources || sources.length === 0) return null;
+
+//   return (
+//     <div className="mt-4 rounded-lg bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-4">
+//       <div className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
+//         <span className="text-base">📎</span> Sources
+//       </div>
+//       <ul className="space-y-2">
+//         {sources.map((source, index) => (
+//           <li
+//             key={index}
+//             className="group relative flex items-center justify-between rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-200 ease-in-out"
+//           >
+//             <a
+//               href={source.url}
+//               target="_blank"
+//               rel="noopener noreferrer"
+//               className="flex-1 truncate text-sm text-blue-600 dark:text-blue-400 hover:underline"
+//               title={source.title ?? source.url}
+//             >
+//               {source.title ?? source.url}
+//             </a>
+//             <ExternalLink
+//               className="w-4 h-4 text-slate-400 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-200"
+//               aria-hidden="true"
+//             />
+//           </li>
+//         ))}
+//       </ul>
+//     </div>
+//   );
+// }
+
+// // Main message bubble component
+// export default function MessageBubble({ message }: { message: Message }) {
+//   const isUser = message.role === "user";
+//   const [copied, setCopied] = useState(false);
+
+//   const handleCopy = async () => {
+//     try {
+//       await navigator.clipboard.writeText(message.text);
+//       setCopied(true);  
+//       setTimeout(() => setCopied(false), 2000);
+//     } catch (err) {
+//       console.error("Copy failed:", err);
+//     }
+//   };
+
+//   // Normalize Markdown, format AI response, wrap trees
+//   const normalizedText = normalizeMarkdownLinks(message.text);
+//   const formattedText = formatAiResponsePerfect(normalizedText);
+//   const sources = message.sources ?? extractUrls(normalizedText);
+
+//   // Handle empty text
+//   if (!message.text) {
+//     return <div className="text-white/50">No content to display</div>;
+//   }
+
+//   return (
+//     <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
+//       <div className="max-w-[78%]">
+//         <div className={`flex items-end gap-1.5 ${isUser ? "flex-row-reverse" : ""}`}>
+//           {/* Avatar */}
+//           <div className="flex flex-col items-center">
+//             <div
+//               className={`w-8 h-8 rounded-xl flex items-center justify-center text-white font-semibold shadow-sm ${
+//                 isUser ? "bg-[#4440C5]" : "bg-[#5967FF]"
+//               }`}
+//             >
+//               {isUser ? "U" : "AI"}
+//             </div>
+//           </div>
+
+//           {/* Chat Bubble */}
+//           <div className={`${isUser ? "text-right" : "text-left"} relative`}>
+//             <div
+//               className={`px-4 py-3 rounded-2xl shadow-sm ${
+//                 isUser
+//                   ? "bg-[#4440C5] text-white"
+//                   : "bg-white/10 text-white backdrop-blur-md border border-white/20"
+//               }`}
+//             >
+//               <div className="prose prose-sm max-w-none prose-slate leading-relaxed">
+//                 <ReactMarkdown
+//                   remarkPlugins={[remarkGfm]}
+//                   rehypePlugins={[rehypeHighlight]}
+//                   components={{
+//                     a: ({ node, ...props }) => (
+//                       <a
+//                         {...props}
+//                         target="_blank"
+//                         rel="noopener noreferrer"
+//                         className="text-blue-500 hover:underline"
+//                       />
+//                     ),
+//                   }}
+//                 >
+//                   {formattedText}
+//                 </ReactMarkdown>
+//               </div>
+//             </div>
+
+//             {/* Timestamp + Copy/Edit buttons */}
+//             <div className="flex justify-between items-center mt-1.5 gap-2 px-1">
+//               <div className="text-[11px] text-white/85">
+//                 {format(new Date(message.ts), "p • MMM d")}
+//               </div>
+//               <div className="flex gap-1">
+//                 <button
+//                   onClick={handleCopy}
+//                   className="p-1.5 rounded hover:bg-white/5 relative"
+//                   title={copied ? "Copied!" : "Copy"}
+//                   aria-label={copied ? "Text copied" : "Copy text"}
+//                 >
+//                   {copied ? (
+//                     <Check className="w-4 h-4 text-green-500" />
+//                   ) : (
+//                     <Copy className="w-4 h-4 text-white" />
+//                   )}
+//                 </button>
+//                 {isUser && message.onEdit && (
+//                   <button
+//                     onClick={() => message.onEdit?.(message.text)}
+//                     className="p-1 rounded hover:bg-white/5"
+//                     title="Edit"
+//                     aria-label="Edit message"
+//                   >
+//                     <Edit className="w-4 h-4 text-white" />
+//                   </button>
+//                 )}
+//               </div>
+//             </div>
+
+//             {/* Sources */}
+//             <SourceList sources={sources} />
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+
+// "use client";
+
+// import React, { useState } from "react";
+// import { format } from "date-fns";
+// import ReactMarkdown from "react-markdown";
+// import remarkGfm from "remark-gfm";
+// import rehypeHighlight from "rehype-highlight";
+// import { Copy, Check, Edit, ExternalLink } from "lucide-react";
+
+// // Define the Message type
+// type Message = {
+//   id: string;
+//   role: "user" | "assistant";
+//   text: string;
+//   ts: number;
+//   sources?: { title?: string; url?: string }[];
+//   onEdit?: (text: string) => void;
+// };
+
+// // Normalize Markdown links and fix malformed links
+// function normalizeMarkdownLinks(text: any): string {
+//   if (!text) return "";
+//   let str = String(text);
+
+//   // Fix malformed links like "Next.js Documentationextjs.org/docs)"
+//   str = str.replace(
+//     /([^\]\s]+)\s*(https?:\/\/[^\s)]+?)\s*\)?/g,
+//     (match, title, url) => {
+//       // Only apply if it doesn't already look like a valid Markdown link
+//       if (!match.match(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/)) {
+//         return `[${title}](${url})`;
+//       }
+//       return match;
+//     }
+//   );
+
+//   // Ensure proper Markdown link format and remove stray parentheses
+//   str = str.replace(/\[([^\]]+)\]\(\s*(https?:\/\/[^\s)]+?)\s*\)?\s*/g, "[$1]($2)");
+
+//   return str;
+// }
+
+// // Auto-wrap tree-like text in code block
+// function formatTreeText(text: string): string {
+//   if (!text) return "";
+//   const hasTreeChars = /├──|└──/.test(text);
+//   if (hasTreeChars) return "```\n" + text + "\n```";
+//   return text;
+// }
+
+// // Auto-format AI responses: fix bullets, numbered lists, spacing, and trees
+// function formatAiResponsePerfect(text: string): string {
+//   if (!text) return "";
+
+//   let formatted = String(text);
+
+//   // Normalize line breaks
+//   formatted = formatted.replace(/\r\n|\r/g, "\n");
+
+//   // Remove extra spaces at start/end of each line
+//   formatted = formatted
+//     .split("\n")
+//     .map((line) => line.trimEnd())
+//     .join("\n");
+
+//   // Ensure numbered lists start on a new line
+//   formatted = formatted.replace(/(\d+)\.\s+/g, "\n$1. ");
+
+//   // Ensure bullets start on a new line
+//   formatted = formatted.replace(/\s*-\s+/g, "\n- ");
+
+//   // Fix folder tree code blocks
+//   if (/├──|└──/.test(formatted)) {
+//     formatted = "```\n" + formatted + "\n```";
+//   }
+
+//   // Remove multiple empty lines
+//   formatted = formatted.replace(/\n{2,}/g, "\n");
+
+//   return formatted.trim();
+// }
+
+// // Extract URLs safely and assign meaningful titles
+// function extractUrls(text: any): { title: string; url: string }[] {
+//   if (!text) return [];
+//   const str = String(text);
+//   const urlRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+?)\)/g;
+//   const matches = [...str.matchAll(urlRegex)];
+//   const sources: { title: string; url: string }[] = matches.map((match) => ({
+//     title: match[1].trim(),
+//     url: match[2].trim(),
+//   }));
+
+//   // Fallback: Extract plain URLs if no Markdown links are found
+//   if (sources.length === 0) {
+//     const plainUrlRegex = /(https?:\/\/[^\s]+)/g;
+//     const plainMatches = str.match(plainUrlRegex);
+//     if (plainMatches) {
+//       return plainMatches.map((url) => ({
+//         title: url,
+//         url: url.trim(),
+//       }));
+//     }
+//   }
+
+//   return sources;
+// }
+
+// // Component to render source list
+// function SourceList({ sources }: { sources?: Message["sources"] }) {
+//   if (!sources || sources.length === 0) return null;
+
+//   // Remove duplicate sources by URL
+//   const uniqueSources = Array.from(
+//     new Map(sources.map((source) => [source.url, source])).values()
+//   );
+
+//   return (
+//     <div className="mt-4 rounded-lg bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-4">
+//       <div className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
+//         <span className="text-base">📎</span> Sources
+//       </div>
+//       <ul className="space-y-2">
+//         {uniqueSources.map((source, index) => (
+//           <li
+//             key={index}
+//             className="group relative flex items-center justify-between rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-200 ease-in-out"
+//           >
+//             <a
+//               href={source.url}
+//               target="_blank"
+//               rel="noopener noreferrer"
+//               className="flex-1 truncate text-sm text-blue-600 dark:text-blue-400 hover:underline"
+//               title={source.title ?? source.url}
+//             >
+//               {source.title ?? source.url}
+//             </a>
+//             <ExternalLink
+//               className="w-4 h-4 text-slate-400 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-200"
+//               aria-hidden="true"
+//             />
+//           </li>
+//         ))}
+//       </ul>
+//     </div>
+//   );
+// }
+
+// // Main message bubble component
+// export default function MessageBubble({ message }: { message: Message }) {
+//   const isUser = message.role === "user";
+//   const [copied, setCopied] = useState(false);
+
+//   const handleCopy = async () => {
+//     try {
+//       await navigator.clipboard.writeText(message.text);
+//       setCopied(true);
+//       setTimeout(() => setCopied(false), 2000);
+//     } catch (err) {
+//       console.error("Copy failed:", err);
+//     }
+//   };
+
+//   // Normalize Markdown, format AI response, wrap trees
+//   const normalizedText = normalizeMarkdownLinks(message.text);
+//   const formattedText = formatTreeText(formatAiResponsePerfect(normalizedText));
+//   const sources = message.sources?.length
+//     ? message.sources
+//     : extractUrls(normalizedText);
+
+//   // Handle empty text
+//   if (!message.text) {
+//     return <div className="text-white/50">No content to display</div>;
+//   }
+
+//   return (
+//     <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
+//       <div className="max-w-[78%]">
+//         <div className={`flex items-end gap-1.5 ${isUser ? "flex-row-reverse" : ""}`}>
+//           {/* Avatar */}
+//           <div className="flex flex-col items-center">
+//             <div
+//               className={`w-8 h-8 rounded-xl flex items-center justify-center text-white font-semibold shadow-sm ${
+//                 isUser ? "bg-[#4440C5]" : "bg-[#5967FF]"
+//               }`}
+//             >
+//               {isUser ? "U" : "AI"}
+//             </div>
+//           </div>
+
+//           {/* Chat Bubble */}
+//           <div className={`${isUser ? "text-right" : "text-left"} relative`}>
+//             <div
+//               className={`px-4 py-3 rounded-2xl shadow-sm ${
+//                 isUser
+//                   ? "bg-[#4440C5] text-white"
+//                   : "bg-white/10 text-white backdrop-blur-md border border-white/20"
+//               }`}
+//             >
+//               <div className="prose prose-sm max-w-none prose-slate leading-relaxed">
+//                 <ReactMarkdown
+//                   remarkPlugins={[remarkGfm]}
+//                   rehypePlugins={[rehypeHighlight]}
+//                   components={{
+//                     a: ({ node, ...props }) => (
+//                       <a
+//                         {...props}
+//                         target="_blank"
+//                         rel="noopener noreferrer"
+//                         className="text-blue-500 hover:underline"
+//                       />
+//                     ),
+//                   }}
+//                 >
+//                   {formattedText}
+//                 </ReactMarkdown>
+//               </div>
+//             </div>
+
+//             {/* Timestamp + Copy/Edit buttons */}
+//             <div className="flex justify-between items-center mt-1.5 gap-2 px-1">
+//               <div className="text-[11px] text-white/85">
+//                 {format(new Date(message.ts), "p • MMM d")}
+//               </div>
+//               <div className="flex gap-1">
+//                 <button
+//                   onClick={handleCopy}
+//                   className="p-1.5 rounded hover:bg-white/5 relative"
+//                   title={copied ? "Copied!" : "Copy"}
+//                   aria-label={copied ? "Text copied" : "Copy text"}
+//                 >
+//                   {copied ? (
+//                     <Check className="w-4 h-4 text-green-500" />
+//                   ) : (
+//                     <Copy className="w-4 h-4 text-white" />
+//                   )}
+//                 </button>
+//                 {isUser && message.onEdit && (
+//                   <button
+//                     onClick={() => message.onEdit?.(message.text)}
+//                     className="p-1 rounded hover:bg-white/5"
+//                     title="Edit"
+//                     aria-label="Edit message"
+//                   >
+//                     <Edit className="w-4 h-4 text-white" />
+//                   </button>
+//                 )}
+//               </div>
+//             </div>
+
+//             {/* Sources */}
+//             <SourceList sources={sources} />
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+// "use client";
+
+// import React, { useState } from "react";
+// import { format } from "date-fns";
+// import ReactMarkdown from "react-markdown";
+// import remarkGfm from "remark-gfm";
+// import rehypeHighlight from "rehype-highlight";
+// import { Copy, Check, Edit, ExternalLink } from "lucide-react";
+
+// // Define the Message type
+// type Message = {
+//   id: string;
+//   role: "user" | "assistant";
+//   text: string;
+//   ts: number;
+//   sources?: { title?: string; url?: string }[];
+//   onEdit?: (text: string) => void;
+// };
+
+// // Normalize Markdown links and fix malformed links
+// function normalizeMarkdownLinks(text: any): string {
+//   if (!text) return "";
+//   let str = String(text);
+
+//   // Convert plain URLs with trailing dots or in parentheses to Markdown links
+//   str = str.replace(
+//     /([^\]\s]+)\s*[\(\:]\s*(https?:\/\/[^\s)]+?)\.?[\)]?\s*/g,
+//     (match, title, url) => {
+//       // Only apply if it doesn't already look like a valid Markdown link
+//       if (!match.match(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/)) {
+//         return `[${title.trim()}](${url.trim()})`;
+//       }
+//       return match;
+//     }
+//   );
+
+//   // Clean up Markdown links, removing stray parentheses and trailing dots
+//   str = str.replace(/\[([^\]]+)\]\(\s*(https?:\/\/[^\s)]+?)\.?\s*\)?\s*/g, "[$1]($2)");
+
+//   return str;
+// }
+
+// // Auto-wrap tree-like text in code block
+// function formatTreeText(text: string): string {
+//   if (!text) return "";
+//   const hasTreeChars = /├──|└──/.test(text);
+//   if (hasTreeChars) return "```\n" + text + "\n```";
+//   return text;
+// }
+
+// // Auto-format AI responses: fix bullets, numbered lists, spacing, and trees
+// function formatAiResponsePerfect(text: string): string {
+//   if (!text) return "";
+
+//   let formatted = String(text);
+
+//   // Normalize line breaks
+//   formatted = formatted.replace(/\r\n|\r/g, "\n");
+
+//   // Remove extra spaces at start/end of each line
+//   formatted = formatted
+//     .split("\n")
+//     .map((line) => line.trimEnd())
+//     .join("\n");
+
+//   // Ensure numbered lists start on a new line
+//   formatted = formatted.replace(/(\d+)\.\s+/g, "\n$1. ");
+
+//   // Ensure bullets start on a new line
+//   formatted = formatted.replace(/\s*-\s+/g, "\n- ");
+
+//   // Fix folder tree code blocks
+//   if (/├──|└──/.test(formatted)) {
+//     formatted = "```\n" + formatted + "\n```";
+//   }
+
+//   // Remove multiple empty lines
+//   formatted = formatted.replace(/\n{2,}/g, "\n");
+
+//   return formatted.trim();
+// }
+
+// // Extract URLs safely and assign meaningful titles
+// function extractUrls(text: any): { title: string; url: string }[] {
+//   if (!text) return [];
+//   const str = String(text);
+//   const urlRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+?)\)/g;
+//   const matches = [...str.matchAll(urlRegex)];
+//   const sources: { title: string; url: string }[] = matches.map((match) => ({
+//     title: match[1].trim(),
+//     url: match[2].trim().replace(/\.$/, ""), // Remove trailing dot
+//   }));
+
+//   // Fallback: Extract plain URLs if no Markdown links are found
+//   if (sources.length === 0) {
+//     const plainUrlRegex = /(https?:\/\/[^\s)]+?)(?=\s|$|\))/g;
+//     const plainMatches = str.match(plainUrlRegex);
+//     if (plainMatches) {
+//       return plainMatches.map((url) => ({
+//         title: url,
+//         url: url.trim().replace(/\.$/, ""), // Remove trailing dot
+//       }));
+//     }
+//   }
+
+//   return sources;
+// }
+
+// // Component to render source list
+// function SourceList({ sources }: { sources?: Message["sources"] }) {
+//   if (!sources || sources.length === 0) return null;
+
+//   // Remove duplicate sources by URL
+//   const uniqueSources = Array.from(
+//     new Map(sources.map((source) => [source.url, source])).values()
+//   );
+
+//   return (
+//     <div className="mt-4 rounded-lg bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-4">
+//       <div className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
+//         <span className="text-base">📎</span> Sources
+//       </div>
+//       <ul className="space-y-2">
+//         {uniqueSources.map((source, index) => (
+//           <li
+//             key={index}
+//             className="group relative flex items-center justify-between rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-200 ease-in-out"
+//           >
+//             <a
+//               href={source.url}
+//               target="_blank"
+//               rel="noopener noreferrer"
+//               className="flex-1 truncate text-sm text-blue-600 dark:text-blue-400 hover:underline"
+//               title={source.title ?? source.url}
+//             >
+//               {source.title ?? source.url}
+//             </a>
+//             <ExternalLink
+//               className="w-4 h-4 text-slate-400 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-200"
+//               aria-hidden="true"
+//             />
+//           </li>
+//         ))}
+//       </ul>
+//     </div>
+//   );
+// }
+
+// // Main message bubble component
+// export default function MessageBubble({ message }: { message: Message }) {
+//   const isUser = message.role === "user";
+//   const [copied, setCopied] = useState(false);
+
+//   const handleCopy = async () => {
+//     try {
+//       await navigator.clipboard.writeText(message.text);
+//       setCopied(true);
+//       setTimeout(() => setCopied(false), 2000);
+//     } catch (err) {
+//       console.error("Copy failed:", err);
+//     }
+//   };
+
+//   // Normalize Markdown, format AI response, wrap trees
+//   const normalizedText = normalizeMarkdownLinks(message.text);
+//   const formattedText = formatTreeText(formatAiResponsePerfect(normalizedText));
+//   const sources = message.sources?.length
+//     ? message.sources
+//     : extractUrls(normalizedText);
+
+//   // Handle empty text
+//   if (!message.text) {
+//     return <div className="text-white/50">No content to display</div>;
+//   }
+
+//   return (
+//     <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
+//       <div className="max-w-[78%]">
+//         <div className={`flex items-end gap-1.5 ${isUser ? "flex-row-reverse" : ""}`}>
+//           {/* Avatar */}
+//           <div className="flex flex-col items-center">
+//             <div
+//               className={`w-8 h-8 rounded-xl flex items-center justify-center text-white font-semibold shadow-sm ${
+//                 isUser ? "bg-[#4440C5]" : "bg-[#5967FF]"
+//               }`}
+//             >
+//               {isUser ? "U" : "AI"}
+//             </div>
+//           </div>
+
+//           {/* Chat Bubble */}
+//           <div className={`${isUser ? "text-right" : "text-left"} relative`}>
+//             <div
+//               className={`px-4 py-3 rounded-2xl shadow-sm ${
+//                 isUser
+//                   ? "bg-[#4440C5] text-white"
+//                   : "bg-white/10 text-white backdrop-blur-md border border-white/20"
+//               }`}
+//             >
+//               <div className="prose prose-sm max-w-none prose-slate leading-relaxed">
+//                 <ReactMarkdown
+//                   remarkPlugins={[remarkGfm]}
+//                   rehypePlugins={[rehypeHighlight]}
+//                   components={{
+//                     a: ({ node, ...props }) => (
+//                       <a
+//                         {...props}
+//                         target="_blank"
+//                         rel="noopener noreferrer"
+//                         className="text-blue-500 hover:underline"
+//                       />
+//                     ),
+//                   }}
+//                 >
+//                   {formattedText}
+//                 </ReactMarkdown>
+//               </div>
+//             </div>
+
+//             {/* Timestamp + Copy/Edit buttons */}
+//             <div className="flex justify-between items-center mt-1.5 gap-2 px-1">
+//               <div className="text-[11px] text-white/85">
+//                 {format(new Date(message.ts), "p • MMM d")}
+//               </div>
+//               <div className="flex gap-1">
+//                 <button
+//                   onClick={handleCopy}
+//                   className="p-1.5 rounded hover:bg-white/5 relative"
+//                   title={copied ? "Copied!" : "Copy"}
+//                   aria-label={copied ? "Text copied" : "Copy text"}
+//                 >
+//                   {copied ? (
+//                     <Check className="w-4 h-4 text-green-500" />
+//                   ) : (
+//                     <Copy className="w-4 h-4 text-white" />
+//                   )}
+//                 </button>
+//                 {isUser && message.onEdit && (
+//                   <button
+//                     onClick={() => message.onEdit?.(message.text)}
+//                     className="p-1 rounded hover:bg-white/5"
+//                     title="Edit"
+//                     aria-label="Edit message"
+//                   >
+//                     <Edit className="w-4 h-4 text-white" />
+//                   </button>
+//                 )}
+//               </div>
+//             </div>
+
+//             {/* Sources */}
+//             <SourceList sources={sources} />
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+
 "use client";
 
 import React, { useState } from "react";
@@ -924,10 +1664,27 @@ type Message = {
   onEdit?: (text: string) => void;
 };
 
-// Normalize Markdown links and ensure string
+// Normalize Markdown links and convert to plain text for message
 function normalizeMarkdownLinks(text: any): string {
   if (!text) return "";
-  return String(text).replace(/\[([^\]]+)\]\(\s*\n?\s*(https?:\/\/[^\s)]+)\s*\)/g, "[$1]($2)");
+  let str = String(text);
+
+  // Remove <s> tags
+  str = str.replace(/<\/?s>/g, "");
+
+  // Convert Markdown links to plain text titles (e.g., [StatQuest](https://statquest.org) → StatQuest)
+  str = str.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+?)\)/g, "$1");
+
+  // Convert plain URLs with colons/parentheses or trailing dots/parentheses to plain text
+  str = str.replace(
+    /([^\]\s]+)\s*[\(\:]\s*(https?:\/\/[^\s)]+?)[.\)]?\s*/g,
+    "$1"
+  );
+
+  // Remove stray Link: prefixes
+  str = str.replace(/Link:\s*/g, "");
+
+  return str;
 }
 
 // Auto-wrap tree-like text in code block
@@ -970,19 +1727,48 @@ function formatAiResponsePerfect(text: string): string {
   return formatted.trim();
 }
 
-// Extract URLs safely
+// Extract URLs safely and assign meaningful titles
 function extractUrls(text: any): { title: string; url: string }[] {
   if (!text) return [];
   const str = String(text);
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
-  const matches = str.match(urlRegex);
-  if (!matches) return [];
-  return matches.map((url) => ({ title: url, url }));
+  const urlRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+?)\)/g;
+  const matches = [...str.matchAll(urlRegex)];
+  let sources: { title: string; url: string }[] = matches.map((match) => ({
+    title: match[1].trim(),
+    url: match[2].trim().replace(/[.\)]$/, ""), // Remove trailing dot or parenthesis
+  }));
+
+  // Fallback: Extract plain URLs with colons/parentheses
+  if (sources.length === 0) {
+    const plainUrlRegex = /(https?:\/\/[^\s)]+?)(?=\s|$|[.\)])/g;
+    const plainMatches = str.match(plainUrlRegex);
+    if (plainMatches) {
+      sources = plainMatches.map((url, index) => ({
+        title: str
+          .substring(0, str.indexOf(url))
+          .trim()
+          .split("\n")
+          .pop()
+          ?.replace(/^\d+\.\s*|\s*[\(\:]\s*/g, "") || `Source ${index + 1}`, // Extract title from preceding text or use fallback
+        url: url.trim().replace(/[.\)]$/, ""), // Remove trailing dot or parenthesis
+      }));
+    }
+  }
+
+  // Deduplicate sources by URL, keeping the first title encountered
+  return Array.from(
+    new Map(sources.map((source) => [source.url, source])).values()
+  );
 }
 
 // Component to render source list
 function SourceList({ sources }: { sources?: Message["sources"] }) {
   if (!sources || sources.length === 0) return null;
+
+  // Remove duplicate sources by URL (already handled in extractUrls)
+  const uniqueSources = Array.from(
+    new Map(sources.map((source) => [source.url, source])).values()
+  );
 
   return (
     <div className="mt-4 rounded-lg bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-4">
@@ -990,7 +1776,7 @@ function SourceList({ sources }: { sources?: Message["sources"] }) {
         <span className="text-base">📎</span> Sources
       </div>
       <ul className="space-y-2">
-        {sources.map((source, index) => (
+        {uniqueSources.map((source, index) => (
           <li
             key={index}
             className="group relative flex items-center justify-between rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-200 ease-in-out"
@@ -1023,7 +1809,7 @@ export default function MessageBubble({ message }: { message: Message }) {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(message.text);
-      setCopied(true);  
+      setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error("Copy failed:", err);
@@ -1032,8 +1818,10 @@ export default function MessageBubble({ message }: { message: Message }) {
 
   // Normalize Markdown, format AI response, wrap trees
   const normalizedText = normalizeMarkdownLinks(message.text);
-  const formattedText = formatAiResponsePerfect(normalizedText);
-  const sources = message.sources ?? extractUrls(normalizedText);
+  const formattedText = formatTreeText(formatAiResponsePerfect(normalizedText));
+  const sources = message.sources?.length
+    ? message.sources
+    : extractUrls(message.text); // Use original text for URL extraction
 
   // Handle empty text
   if (!message.text) {
